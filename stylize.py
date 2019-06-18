@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python
 import argparse
+from functools import reduce
 from function import adaptive_instance_normalization
 import net
 from pathlib import Path
@@ -69,16 +71,22 @@ def main():
     # collect content files
     extensions = args.extensions
     assert len(extensions) > 0, 'No file extensions specified'
-    content_dir = Path(content_dir)
-    content_dir = content_dir.resolve()
-    assert content_dir.is_dir(), 'Content directory not found'
+    p_content_dir = Path(content_dir)
+    p_content_dir = p_content_dir.resolve()
+    
     dataset = []
-    for ext in extensions:
-        dataset += list(content_dir.rglob('*.' + ext))
+    content_dir = []
+    for p in p_content_dir.glob("*"):
+        content_dir.append(p.stem)
+        ds = []
+        for ext in extensions:
+            ds += [x.stem + x.suffix for x in list((p_content_dir / p.stem).glob('*.' + ext))]
+        dataset.append(ds)
 
+    a_content_dir = reduce((lambda x, y: x + y), dataset)
     assert len(dataset) > 0, 'No images with specified extensions found in content directory' + content_dir
-    content_paths = sorted(dataset)
-    print('Found %d content images in %s' % (len(content_paths), content_dir))
+    # content_paths = sorted(dataset)
+    print('Found %d content images' % len(a_content_dir))
 
     # collect style files
     styles = []
@@ -109,42 +117,45 @@ def main():
 
 
     # actual style transfer as in AdaIN
-    with tqdm(total=len(content_paths) * args.num_styles) as pbar:
-        for content_path in content_paths:
-            for style_path in random.sample(styles, args.num_styles):
-                try:
-                    content_img = Image.open(content_path).convert('RGB')
-                    style_img = Image.open(style_path).convert('RGB')
-                except OSError as e:
-                    print('Skipping stylization of %s with %s due to error below' %(content_path, style_path))
-                    print(e)
-                    continue
-
-                content = content_tf(content_img)
-                style = style_tf(style_img)
-                style = style.to(device).unsqueeze(0)
-                content = content.to(device).unsqueeze(0)
-                with torch.no_grad():
-                    output = style_transfer(vgg, decoder, content, style,
-                                            args.alpha)
-                output = output.cpu()
-
-                rel_path = content_path.relative_to(content_dir)
-                out_dir = output_dir.joinpath(rel_path.parent)
-
-                # create directory structure if it does not exist
-                if not out_dir.is_dir():
-                    out_dir.mkdir(parents=True)
-
-                content_name = content_path.stem
-                style_name = style_path.stem
-                out_filename = content_name + '-stylized-' + style_name + content_path.suffix
-                output_name = out_dir.joinpath(out_filename)
-
-                save_image(output, output_name, padding=0) #default image padding is 2.
-                content_img.close()
-                style_img.close()
-                pbar.update(1)
+    with tqdm(total=len(a_content_dir) * args.num_styles) as pbar:
+        for ii in range(len(content_dir)):
+            cd = content_dir[ii]
+            ds = dataset[ii]
+            for nnn in ds:
+                content_path = p_content_dir / cd / nnn
+                for style_path in random.sample(styles, args.num_styles):
+                    try:
+                        content_img = Image.open(content_path).convert('RGB')
+                        style_img = Image.open(style_path).convert('RGB')
+                    except OSError as e:
+                        print('Skipping stylization of %s with %s due to error below' %(content_path, style_path))
+                        print(e)
+                        continue
+    
+                    content = content_tf(content_img)
+                    style = style_tf(style_img)
+                    style = style.to(device).unsqueeze(0)
+                    content = content.to(device).unsqueeze(0)
+                    with torch.no_grad():
+                        output = style_transfer(vgg, decoder, content, style,
+                                                args.alpha)
+                    output = output.cpu()
+    
+                    out_dir = output_dir.joinpath(cd)
+    
+                    # create directory structure if it does not exist
+                    if not out_dir.is_dir():
+                        out_dir.mkdir(parents=True)
+    
+                    content_name = content_path.stem
+                    style_name = style_path.stem
+                    out_filename = str(nnn) + '-stylized-' + style_name + '.jpeg'
+                    output_name = out_dir.joinpath(out_filename)
+    
+                    save_image(output, output_name, padding=0) #default image padding is 2.
+                    content_img.close()
+                    style_img.close()
+                    pbar.update(1)
 
 if __name__ == '__main__':
     main()
