@@ -1,0 +1,24 @@
+  File "extract_main.py", line 104
+    style_img = Image.open(style    _path).convert('RGB')
+                                        ^
+SyntaxError: invalid syntax
+THCudaCheck FAIL file=/opt/conda/conda-bld/pytorch_1524586445097/work/aten/src/THC/THCTensorRandom.cu line=25 error=2 : out of memory
+Found 79433 style images in /data/chengbin/style/train
+Traceback (most recent call last):
+  File "extract_main.py", line 125, in <module>
+    main()
+  File "extract_main.py", line 91, in main
+    en.to(device)
+  File "/home/chengbin/anaconda3/envs/t4/lib/python3.6/site-packages/torch/nn/modules/module.py", line 393, in to
+    return self._apply(lambda t: t.to(device))
+  File "/home/chengbin/anaconda3/envs/t4/lib/python3.6/site-packages/torch/nn/modules/module.py", line 176, in _apply
+    module._apply(fn)
+  File "/home/chengbin/anaconda3/envs/t4/lib/python3.6/site-packages/torch/nn/modules/module.py", line 176, in _apply
+    module._apply(fn)
+  File "/home/chengbin/anaconda3/envs/t4/lib/python3.6/site-packages/torch/nn/modules/module.py", line 182, in _apply
+    param.data = fn(param.data)
+  File "/home/chengbin/anaconda3/envs/t4/lib/python3.6/site-packages/torch/nn/modules/module.py", line 393, in <lambda>
+    return self._apply(lambda t: t.to(device))
+  File "/home/chengbin/anaconda3/envs/t4/lib/python3.6/site-packages/torch/cuda/__init__.py", line 161, in _lazy_init
+    torch._C._cuda_init()
+RuntimeError: cuda runtime error (2) : out of memory at /opt/conda/conda-bld/pytorch_1524586445097/work/aten/src/THC/THCTensorRandom.cu:25

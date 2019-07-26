@@ -66,7 +66,6 @@ def main():
     style_dir = style_dir.resolve()
     output_dir = Path(args.output_dir)
     output_dir = output_dir.resolve()
-    assert content_dir.is_dir(), 'content directory not found'
     assert style_dir.is_dir(), 'Style directory not found'
 
     # collect content files
@@ -85,7 +84,6 @@ def main():
         dataset.append(ds)
 
     a_content_dir = reduce((lambda x, y: x + y), dataset)
-    print(dataset)
     assert len(dataset) > 0, 'No images with specified extensions found in content directory' + content_dir
     # content_paths = sorted(dataset)
     print('Found %d content images' % len(a_content_dir))

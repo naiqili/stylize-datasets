@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=7 python extract_main.py --style-dir "/data/chengbin/style/train/" --style-size 256

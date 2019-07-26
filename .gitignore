@@ -2,3 +2,4 @@ models/*.t7
 models/*.pth
 models/*.py
 __pycache__*
+*.txt
